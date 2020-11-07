@@ -9,6 +9,9 @@
     "swagger": "swagger-jsdoc -d swaggerDef.js"
   },
   "dependencies": {
+    "@types/joi": "^14.3.4",
+    "joi": "^17.3.0",
+    "pg": "^8.4.2",
     "source-map-support": "^0.5.10"
   },
   "devDependencies": {
