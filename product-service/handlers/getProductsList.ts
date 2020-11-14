@@ -1,6 +1,6 @@
-import {APIGatewayProxyHandler} from 'aws-lambda';
-import productList from '../mocks/products.json';
-import { getErrorResponse, HEADERS, STATUSES } from '../helpers';
+import { APIGatewayProxyHandler } from 'aws-lambda';
+import { Client } from 'pg';
+import { getErrorResponse, HEADERS, STATUSES, DB_OPTIONS } from '../helpers';
 import 'source-map-support/register';
 
 /**
@@ -12,6 +12,7 @@ import 'source-map-support/register';
  *       - image
  *       - title
  *       - price
+ *       -count
  *     properties:
  *       id:
  *         type: string
@@ -56,15 +57,41 @@ import 'source-map-support/register';
  *          description: not found
  *          schema:
  *              $ref: "#/definitions/Error"
+ *       500:
+ *          description: server error
+ *          schema:
+ *              $ref: "#/definitions/Error"
  */
+
 export const getProductsList: APIGatewayProxyHandler = async () => {
-    if (productList) {
+    console.log('GET products');
+    const client = new Client(DB_OPTIONS);
+
+    try {
+        await client.connect();
+
+        const {rows: productList} = await client.query(`
+            SELECT
+                id,
+                title,
+                description,
+                image,
+                price,
+                count
+            FROM
+                products
+            LEFT JOIN stocks
+                ON id = product_id;
+        `);
+
         return {
             statusCode: STATUSES.SUCCESS,
             headers: HEADERS,
             body: JSON.stringify(productList, null, 2),
         };
+    } catch (e) {
+        return getErrorResponse(STATUSES.SERVER_ERROR, 'Server error')
+    } finally {
+        client.end();
     }
-
-    return getErrorResponse(STATUSES.NOT_FOUND, 'product list not found');
 }
