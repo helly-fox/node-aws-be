@@ -27,6 +27,13 @@ const serverlessConfiguration: Serverless = {
         Action: ['s3:*'],
         Resource: ['arn:aws:s3:::rs-school-aws-shop/*']
       },
+      {
+        Effect: 'Allow',
+        Action: 'sqs:*',
+        Resource: [{
+          'Fn::GetAtt': [ 'SQSQueue', 'Arn' ]
+        }]
+      }
     ],
     apiGateway: {
       minimumCompressionSize: 1024,
@@ -34,6 +41,45 @@ const serverlessConfiguration: Serverless = {
     environment: {
       BUCKET: 'rs-school-aws-shop',
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+      SQS_QUEUE: {
+        Ref: 'SQSQueue'
+      }
+    },
+  },
+  resources: {
+    Resources: {
+      SQSQueue: {
+        Type: 'AWS::SQS::Queue',
+        Properties: {
+          QueueName: 'catalogItemsQueue'
+        }
+      }
+    },
+    Outputs: {
+      SQSQueue: {
+        Value: {
+          Ref: "SQSQueue",
+        },
+        Export: {
+          Name: "SQSQueue",
+        },
+      },
+      SQSQueueUrl: {
+        Value: {
+          Ref: "SQSQueue",
+        },
+        Export: {
+          Name: "SQSQueueUrl",
+        },
+      },
+      SQSQueueArn: {
+        Value: {
+          "Fn::GetAtt": ["SQSQueue", "Arn"],
+        },
+        Export: {
+          Name: "SQSQueueArn",
+        },
+      },
     },
   },
   functions: {

@@ -23,10 +23,52 @@ const serverlessConfiguration: Serverless = {
       PG_DATABASE: 'rs_aws_shop_db',
       PG_USERNAME: 'user', // insert
       PG_PASSWORD: 'password', //insert
+      SQS_QUEUE: {
+        "Fn::ImportValue": 'SQSQueueUrl',
+      },
+      SNS_ARN: {
+        Ref: 'SNSTopic'
+      }
     },
+    iamRoleStatements: [
+      {
+        Effect: 'Allow',
+        Action: 'sqs:*',
+        Resource: [{
+          "Fn::ImportValue": 'SQSQueueArn',
+        }]
+      },
+      {
+        Effect: 'Allow',
+        Action: 'sns:*',
+        Resource: {
+          Ref: 'SNSTopic'
+        }
+      }
+    ],
     apiGateway: {
       minimumCompressionSize: 1024,
     },
+  },
+  resources: {
+    Resources: {
+      SNSTopic: {
+        Type: 'AWS::SNS::Topic',
+        Properties: {
+          TopicName: 'createProductTopic'
+        }
+      },
+      SNSSubscription: {
+        Type: 'AWS::SNS::Subscription',
+        Properties: {
+          Endpoint: 'elena.proweb@gmail.com',
+          Protocol: 'email',
+          TopicArn: {
+            Ref: 'SNSTopic'
+          }
+        }
+      }
+    }
   },
   functions: {
     getProductsList: {
@@ -61,6 +103,19 @@ const serverlessConfiguration: Serverless = {
             method: 'post',
             path: 'products',
             cors: true,
+          }
+        }
+      ]
+    },
+    catalogBatchProcess: {
+      handler: 'handlers/catalogBatchProcess.catalogBatchProcess',
+      events: [
+        {
+          sqs: {
+            batchSize: 5,
+            arn: {
+              "Fn::ImportValue": 'SQSQueueArn',
+            }
           }
         }
       ]
