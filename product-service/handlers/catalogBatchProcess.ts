@@ -39,13 +39,21 @@ export const catalogBatchProcess = async (event) => {
         `);
         await client.query('COMMIT');
 
-        products.map((product, index) => sns.publish({
+        await Promise.all(products.map((product, index) => sns.publish({
             Subject: `New product with id ${rows[index].id} was added`,
             Message: JSON.stringify(product),
+            MessageAttributes: {
+                count: {
+                    DataType: 'Number',
+                    StringValue: product.count
+                },
+            },
             TopicArn: process.env.SNS_ARN,
-        }, () => {
-            console.log('message was send to provided email')
-        }));
+        }).promise()
+            .then(()=> console.log('Email was send', JSON.stringify(product)))
+            .catch(console.log)));
+
+        console.log('Request ended');
     } catch (e) {
         await client.query('ROLLBACK');
         console.log(e);

@@ -67,6 +67,19 @@ const serverlessConfiguration: Serverless = {
             Ref: 'SNSTopic'
           }
         }
+      },
+      SNSBigAmountSubscription: {
+        Type: 'AWS::SNS::Subscription',
+        Properties: {
+          Endpoint: 'helly.ursa.fox@gmail.com',
+          Protocol: 'email',
+          TopicArn: {
+            Ref: 'SNSTopic'
+          },
+          FilterPolicy: {
+            count: [{numeric: [">=", 10]}]
+          }
+        }
       }
     }
   },
