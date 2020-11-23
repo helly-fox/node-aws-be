@@ -50,8 +50,10 @@ export const catalogBatchProcess = async (event) => {
             },
             TopicArn: process.env.SNS_ARN,
         }).promise()
-            .then(()=> console.log('Email was send', JSON.stringify(product)))
-            .catch(console.log)));
+            .then(() => console.log('Email was send', JSON.stringify(product)))
+            .catch(e => {
+                throw new Error(e)
+            })));
 
         console.log('Request ended');
     } catch (e) {
