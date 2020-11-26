@@ -1,10 +1,11 @@
-import {S3} from 'aws-sdk';
+import {S3, SQS} from 'aws-sdk';
 import csv from 'csv-parser';
 import 'source-map-support/register';
 
 export const importFileParser = event => {
     try {
         const s3 = new S3({region: 'eu-west-1'});
+        const sqs = new SQS();
 
         event.Records.forEach(r =>
             s3.getObject({
@@ -12,7 +13,15 @@ export const importFileParser = event => {
                 Key: r.s3.object.key
             }).createReadStream()
                 .pipe(csv())
-                .on('data', console.log)
+                .on('data', product => {
+                    console.log(product);
+                    sqs.sendMessage({
+                        QueueUrl: process.env.SQS_QUEUE,
+                        MessageBody: JSON.stringify(product)
+                    }, err => {
+                        console.log(err || 'Message was pushed to SQS')
+                    })
+                })
                 .on('end', async () => {
                     try {
                         await s3.copyObject({
