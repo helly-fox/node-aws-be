@@ -4,7 +4,7 @@ import 'source-map-support/register';
 
 export const importFileParser = event => {
     try {
-        const s3 = new S3({region: 'eu-west-1'});
+        const s3 = new S3({region: process.env.REGION});
         const sqs = new SQS();
 
         event.Records.forEach(r =>

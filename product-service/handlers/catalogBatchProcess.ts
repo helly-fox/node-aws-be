@@ -4,7 +4,7 @@ import 'source-map-support/register';
 import {DB_OPTIONS, schema} from '../helpers';
 
 export const catalogBatchProcess = async (event) => {
-    const sns = new SNS({region: 'eu-west-1'});
+    const sns = new SNS({region: process.env.REGION});
     const client = new Client(DB_OPTIONS);
     await client.connect();
 

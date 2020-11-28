@@ -7,7 +7,7 @@ export const importProductsFile: APIGatewayProxyHandler = async event => {
     try {
         const {name} = event.queryStringParameters;
         const path = `uploaded/${name}`;
-        const s3 = new S3({region: 'eu-west-1'});
+        const s3 = new S3({region: process.env.REGION});
         const params = {
             Bucket: process.env.BUCKET,
             Key: path,
