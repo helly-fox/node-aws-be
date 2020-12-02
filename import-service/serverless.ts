@@ -11,7 +11,7 @@ const serverlessConfiguration: Serverless = {
       includeModules: true
     }
   },
-  plugins: ['serverless-webpack'],
+  plugins: ['serverless-webpack', 'serverless-dotenv-plugin'],
   provider: {
     name: 'aws',
     runtime: 'nodejs12.x',
@@ -39,7 +39,6 @@ const serverlessConfiguration: Serverless = {
       minimumCompressionSize: 1024,
     },
     environment: {
-      BUCKET: 'rs-school-aws-shop',
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       SQS_QUEUE: {
         Ref: 'SQSQueue'
@@ -53,7 +52,33 @@ const serverlessConfiguration: Serverless = {
         Properties: {
           QueueName: 'catalogItemsQueue'
         }
-      }
+      },
+      GatewayResponseAccessDenied: {
+        Type: "AWS::ApiGateway::GatewayResponse",
+        Properties: {
+          ResponseParameters: {
+            "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+            "gatewayresponse.header.Access-Control-Allow-Headers": "'*'"
+          },
+          ResponseType: 'ACCESS_DENIED',
+          RestApiId: {
+            Ref: "ApiGatewayRestApi"
+          },
+        }
+      },
+      GatewayResponseUnauthorized: {
+        Type: "AWS::ApiGateway::GatewayResponse",
+        Properties: {
+          ResponseParameters: {
+            "gatewayresponse.header.Access-Control-Allow-Origin": "'*'",
+            "gatewayresponse.header.Access-Control-Allow-Headers": "'*'"
+          },
+          ResponseType: 'UNAUTHORIZED',
+          RestApiId: {
+            Ref: "ApiGatewayRestApi"
+          },
+        }
+      },
     },
     Outputs: {
       SQSQueue: {
@@ -104,6 +129,12 @@ const serverlessConfiguration: Serverless = {
             method: 'put',
             path: 'import',
             cors: true,
+            authorizer: {
+              name: 'basicAuthorizer',
+              arn: 'arn:aws:lambda:eu-west-1:782744160328:function:authrization-service-dev-basicAuthorizer',
+              type: 'token',
+              resultTtlInSeconds: 0,
+            },
             request: {
               parameters: {
                 querystrings: {
