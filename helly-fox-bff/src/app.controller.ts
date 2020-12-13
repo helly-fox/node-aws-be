@@ -16,7 +16,6 @@ export class AppController {
     const { method, originalUrl, body } = req;
     const [,recipient, ...restUrlParams] = originalUrl.split('/');
     const recipientUrl = this.configService.get<string>(recipient);
-    console.log( recipient, recipientUrl );
 
     if (!recipientUrl) {
       return res.status(502).json({error: 'Cannot process request'});
